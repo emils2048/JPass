@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title th:text="${team != null and team['name'] != null ? team['name'] + ' - JPass' : 'チーム詳細'}">チーム詳細</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body {
+    font-family: 'Segoe UI', Roboto, 'Noto Sans JP', Arial, sans-serif;
+    background: #f8fbff;
+    color: #08243a;
+}
+.team-logo {
+    max-height: 150px;
+    width: auto;
+    object-fit: contain;
+    background: #f8f8f8;
+    padding: 12px;
+}
+.no-comments {
+    color: #999;
+    text-align: center;
+    padding: 10px;
+}
+</style>
+</head>
+<body>
+
+<div th:replace="~{fragment/header :: header}"></div>
+
+<div class="container my-4">
+
+    <!-- チーム情報 -->
+    <div class="card mb-4" th:if="${team != null}">
+        <div class="row g-0 align-items-center">
+            <div class="col-md-3 text-center">
+                <img th:if="${team['logo'] != null}" th:src="${team['logo']}" class="img-fluid team-logo">
+                <img th:if="${team['logo'] == null}" th:src="@{/images/no-image.png}" class="img-fluid team-logo">
+            </div>
+            <div class="col-md-9">
+                <div class="card-body" id="teamInfo">
+                    <h2 th:text="${team['name']}">チーム名</h2>
+                    <p><strong>ホームスタジアム:</strong> <span th:text="${team['stadium'] != null ? team['stadium'] : '情報なし'}"></span></p>
+                    <p><strong>監督:</strong> <span th:text="${team['manager'] != null ? team['manager'] : '情報なし'}"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${team == null}" class="alert alert-warning text-center">チーム情報が見つかりません。</div>
+
+    <!-- コメントカード -->
+    <div class="card mb-3">
+        <div class="card-header">コメント</div>
+        <div class="card-body" id="commentsList" th:attr="data-team-id=${teamId}">
+            <div th:if="${#lists.isEmpty(comments)}" class="no-comments">まだコメントがありません。</div>
+            <div th:each="comment : ${comments}" class="mb-2 p-2 border rounded" th:attr="data-comment-id=${comment['id']}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <small class="text-muted" th:text="${comment['nickname'] + ' | ' + #temporals.format(comment['createdAt'],'yyyy-MM-dd HH:mm')}"></small>
+                        <p th:text="${comment['content']}" class="mb-0 comment-text"></p>
+                    </div>
+                    <div class="ms-2 text-nowrap" th:if="${#authentication != null and (comment['memberId'] == #authentication.principal.id or #authorization.expression('hasRole(''ADMIN'')'))}">
+                        <button type="button" class="btn btn-link btn-sm edit-comment">編集</button>
+                        <button type="button" class="btn btn-link btn-sm text-danger delete-comment">削除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="commentForm">
+        <textarea id="commentContent" class="form-control mb-2" rows="3" placeholder="コメントを入力してください"></textarea>
+        <button type="submit" class="btn btn-primary btn-sm">投稿</button>
+    </form>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const commentForm = document.getElementById('commentForm');
+    const commentsList = document.getElementById('commentsList');
+    if (!commentsList) return;
+
+    const teamId = commentsList.dataset.teamId;
+    if (!teamId) {
+        console.error("teamId が取得できません");
+        return;
+    }
+
+    // コメント作成
+    commentForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const contentEl = document.getElementById('commentContent');
+        const content = contentEl.value.trim();
+        if (!content) { alert('コメント内容を入力してください'); return; }
+
+        try {
+            const res = await fetch(`/comments/team/${teamId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ content })
+            });
+
+            if (!res.ok) throw new Error('コメント投稿失敗');
+            const comment = await res.json();
+
+            const div = document.createElement('div');
+            div.className = 'mb-2 p-2 border rounded';
+            div.dataset.commentId = comment.id;
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <small class="text-muted">${comment.nickname} | ${new Date(comment.createdAt).toLocaleString('ja-JP', {hour12:false})}</small>
+                        <p class="mb-0 comment-text">${comment.content}</p>
+                    </div>
+                    <div class="ms-2 text-nowrap">
+                        <button type="button" class="btn btn-link btn-sm edit-comment">編集</button>
+                        <button type="button" class="btn btn-link btn-sm text-danger delete-comment">削除</button>
+                    </div>
+                </div>`;
+
+            const noCommentsEl = commentsList.querySelector('.no-comments');
+            if (noCommentsEl) noCommentsEl.remove();
+
+            commentsList.appendChild(div);
+            contentEl.value = '';
+        } catch(err) {
+            console.error(err);
+            alert('コメントの投稿に失敗しました');
+        }
+    });
+
+    // 編集・削除イベント
+    commentsList.addEventListener('click', async function (e) {
+        const editBtn = e.target.closest('.edit-comment');
+        const delBtn = e.target.closest('.delete-comment');
+
+        if (editBtn) {
+            const card = editBtn.closest('[data-comment-id]');
+            const commentId = card.dataset.commentId;
+            const textEl = card.querySelector('.comment-text');
+            if (card.querySelector('textarea')) return;
+
+            const originalText = textEl.textContent;
+            textEl.style.display = 'none';
+            const textarea = document.createElement('textarea');
+            textarea.className = 'form-control mb-2';
+            textarea.value = originalText;
+            card.querySelector('.flex-grow-1').appendChild(textarea);
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-primary btn-sm me-2';
+            saveBtn.textContent = '保存';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-secondary btn-sm';
+            cancelBtn.textContent = 'キャンセル';
+            const btnWrapper = document.createElement('div');
+            btnWrapper.className = 'mt-1';
+            btnWrapper.appendChild(saveBtn);
+            btnWrapper.appendChild(cancelBtn);
+            card.querySelector('.flex-grow-1').appendChild(btnWrapper);
+
+            saveBtn.addEventListener('click', async function () {
+                const newContent = textarea.value.trim();
+                if (!newContent) { alert('コメント内容を入力してください'); return; }
+                try {
+                    const res = await fetch(`/comments/${commentId}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type':'application/json'},
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ content: newContent })
+                    });
+                    if (!res.ok) throw new Error();
+                    location.reload();
+                } catch { alert('コメントの編集に失敗しました'); }
+            });
+
+            cancelBtn.addEventListener('click', function () {
+                textarea.remove();
+                btnWrapper.remove();
+                textEl.style.display = '';
+            });
+        }
+
+        if (delBtn) {
+            if (!confirm('本当に削除しますか？')) return;
+            const card = delBtn.closest('[data-comment-id]');
+            const commentId = card.dataset.commentId;
+            try {
+                const res = await fetch(`/comments/${commentId}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+                if (!res.ok) throw new Error();
+                card.remove();
+            } catch { alert('コメントの削除に失敗しました'); }
+        }
+    });
+});
+</script>
+
+<div th:replace="~{fragment/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

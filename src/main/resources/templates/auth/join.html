@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>会員登録 - JPass</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}" />
+  <style>
+    .join-wrap{ max-width:720px; margin:36px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 8px 30px rgba(11,44,90,0.06) }
+    .two-col{ display:flex; gap:12px }
+    label{ display:block; margin-bottom:6px; font-weight:600 }
+    input,select{ width:100%; padding:10px; border-radius:8px; border:1px solid rgba(11,44,90,0.08); margin-bottom:10px }
+    .btn-primary{ background:#0b6cff;color:#fff;padding:10px 14px;border-radius:8px;border:0;cursor:pointer }
+    .btn-ghost{ background:#fff;border:1px solid rgba(11,44,90,0.08);padding:8px 10px;border-radius:8px }
+    .error{ color:#d23f3f; font-size:0.9rem }
+    .hint{ color:#6b7a8f; font-size:0.9rem }
+  </style>
+</head>
+<body>
+  <div th:replace="~{fragment/header :: header}"></div>
+  <div class="page">
+    <div class="join-wrap">
+      <h2 style="margin-top:0">会員登録</h2>
+      <form id="joinForm" th:action="@{/join}" method="post">
+        <div class="two-col">
+          <div style="flex:1">
+            <label for="loginId">ユーザーID</label>
+            <div style="display:flex;gap:8px">
+              <input id="loginId" name="loginId" type="text" minlength="4" maxlength="20" required />
+              <button type="button" id="chkId" class="btn-ghost">重複確認</button>
+            </div>
+            <div id="idErr" class="error"></div>
+
+            <label for="password">パスワード</label>
+            <input id="password" name="password" type="password" minlength="8" maxlength="20" required />
+            <div class="hint">8〜20文字、英字+数字+特殊文字の組み合わせ推奨</div>
+            <div id="pwErr" class="error"></div>
+
+            <label for="passwordConfirm">パスワード確認</label>
+            <input id="passwordConfirm" name="passwordConfirm" type="password" required />
+            <div id="pwConfirmErr" class="error"></div>
+          </div>
+          <div style="flex:1">
+            <label for="email">メールアドレス</label>
+            <div style="display:flex;gap:8px">
+              <input id="email" name="email" type="email" required />
+              <button type="button" id="chkEmail" class="btn-ghost">重複確認</button>
+            </div>
+            <div id="emailErr" class="error"></div>
+
+            <label for="nickname">ニックネーム</label>
+            <input id="nickname" name="nickname" type="text" minlength="2" maxlength="10" required />
+            <div id="nickErr" class="error"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+          <button type="submit" class="btn-primary">登録する</button>
+          <a th:href="@{/login}" class="btn-ghost">ログインへ</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div th:replace="~{fragment/footer :: footer}"></div>
+
+  <script>
+  // Simple client-side validation + AJAX stubs for duplicate checks
+  document.getElementById('chkId').addEventListener('click', function(){
+    var id = document.getElementById('loginId').value.trim();
+    var err = document.getElementById('idErr'); err.textContent = '';
+    if(!/^[A-Za-z0-9]{4,20}$/.test(id)){ err.textContent = 'ユーザーIDは4〜20文字の英数字のみです。'; return; }
+    fetch('/auth/check-username?q='+encodeURIComponent(id))
+      .then(r=>r.json())
+      .then(j=>{ if(j.available){ alert('使用可能なユーザーIDです。'); } else { err.textContent='すでに使用されています。' } })
+      .catch(()=>{ err.textContent='サーバーエラー'; });
+  });
+
+  document.getElementById('chkEmail').addEventListener('click', function(){
+    var email = document.getElementById('email').value.trim(); var err=document.getElementById('emailErr'); err.textContent='';
+    if(!/^\S+@\S+\.\S+$/.test(email)){ err.textContent='有効なメール形式ではありません。'; return; }
+    fetch('/auth/check-email?q='+encodeURIComponent(email))
+      .then(r=>r.json())
+      .then(j=>{ if(j.available){ alert('使用可能なメールです。'); } else { err.textContent='すでに登録済みです。' } })
+      .catch(()=>{ err.textContent='サーバーエラー'; });
+  });
+
+  document.getElementById('joinForm').addEventListener('submit', function(e){
+    var pw = document.getElementById('password').value;
+    var pwc = document.getElementById('passwordConfirm').value;
+    var pwErr = document.getElementById('pwErr'); var pwcErr = document.getElementById('pwConfirmErr'); pwErr.textContent=''; pwcErr.textContent='';
+    if(!/(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,20}/.test(pw)){ e.preventDefault(); pwErr.textContent='パスワードは英字/数字/特殊文字を含む8〜20文字である必要があります。'; return; }
+    if(pw !== pwc){ e.preventDefault(); pwcErr.textContent='パスワードが一致しません。'; return; }
+    // Server will handle final validation and redirect
+  });
+</script>
+</body>
+</html>

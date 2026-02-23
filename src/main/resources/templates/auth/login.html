@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ログイン - JPass</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}" />
+  <style>
+    .login-wrap{ max-width:420px; margin:36px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 8px 30px rgba(11,44,90,0.06) }
+    label{ display:block; margin-bottom:6px; font-weight:600 }
+    input[type=text],input[type=password]{ width:100%; padding:10px; border-radius:8px; border:1px solid rgba(11,44,90,0.08); margin-bottom:12px }
+    .btn-primary{ background:#0b6cff;color:#fff;padding:10px 14px;border-radius:8px;border:0;cursor:pointer }
+    .error{ color:#d23f3f; font-size:0.9rem; margin-top:6px }
+  </style>
+</head>
+<body>
+  <div th:replace="~{fragment/header :: header}"></div>
+  <div class="page">
+    <div class="login-wrap">
+      <h2 style="margin-top:0">ログイン</h2>
+      <form id="loginForm" th:action="@{/login}" method="post">
+        <div>
+          <label for="loginId">ユーザーID</label>
+          <input id="loginId" name="loginId" type="text" minlength="4" maxlength="20" required />
+        </div>
+        <div>
+          <label for="password">パスワード</label>
+          <input id="password" name="password" type="password" minlength="8" maxlength="20" required />
+        </div>
+        <div id="loginError" class="error" th:if="${loginError}"></div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button type="submit" class="btn-primary">ログイン</button>
+          <a th:href="@{/join}" style="color:var(--brand);text-decoration:none">会員登録</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div th:replace="~{fragment/footer :: footer}"></div>
+
+  <script>
+    // Client-side basic validation; server handles authentication
+    document.getElementById('loginForm').addEventListener('submit', function(e){
+      var id = document.getElementById('loginId').value.trim();
+      var pw = document.getElementById('password').value;
+      var err = document.getElementById('loginError');
+      if(id.length < 4 || id.length > 20){ e.preventDefault(); err.textContent = 'ユーザーIDは4〜20文字である必要があります。'; return; }
+      if(pw.length < 8 || pw.length > 20){ e.preventDefault(); err.textContent = 'パスワードは8〜20文字である必要があります。'; return; }
+      // let server handle success/failure
+    });
+  </script>
+</body>
+</html>

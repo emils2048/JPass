@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>J1 League 팀 정보</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+
+<style>
+body {
+	background-color: #f5f7fa;
+}
+
+.team-card {
+	border-radius: 15px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	transition: 0.2s;
+}
+
+.team-card:hover {
+	transform: translateY(-3px);
+}
+
+.team-logo {
+	width: 60px;
+	height: 60px;
+	object-fit: contain;
+}
+</style>
+</head>
+
+<body>
+
+	<div class="container my-5">
+
+		<h2 class="text-center mb-4">⚽ J1 League 팀 정보</h2>
+
+		<div class="row g-4" th:each="team : ${teams}">
+
+			<div class="col-md-4 col-sm-6">
+				<div class="card team-card p-3 h-100">
+
+					<div class="text-center mb-3">
+						<img th:src="${team.logo}" class="team-logo"
+							onerror="this.src='/images/default-logo.png'">
+					</div>
+
+					<h5 class="text-center fw-bold" th:text="${team.name}"></h5>
+
+					<ul class="list-unstyled mt-3 small">
+						<li><strong>창단:</strong> <span th:text="${team.founded}"></span></li>
+						<li><strong>국가:</strong> <span th:text="${team.country}"></span></li>
+						<li><strong>홈구장:</strong> <span th:text="${team.stadium}"></span></li>
+						<li><strong>도시:</strong> <span th:text="${team.city}"></span></li>
+						<li><strong>수용 인원:</strong> <span th:text="${team.capacity}"></span></li>
+					</ul>
+
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+
+</body>
+</html>

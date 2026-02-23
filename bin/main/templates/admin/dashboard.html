@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>接続者数の確認</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>最近一週間の接続者の数</h2>
+    <canvas id="visitorChart" width="600" height="300"></canvas>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    // Thymeleaf에서 stats를 JSON 문자열로 안전하게 변환
+    const stats = /*[[${stats}]]*/ [];
+
+    // JS 배열로 변환
+    const labels = stats.map(s => s.visit_date);
+    const data = stats.map(s => s.count);
+
+    new Chart(document.getElementById('visitorChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '接続者の数',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)'
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    /*]]>*/
+    </script>
+</body>
+</html>

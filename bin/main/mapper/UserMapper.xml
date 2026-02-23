@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.blog.mapper.UserMapper">
+
+    <!-- 로그인 아이디로 조회 -->
+    <select id="findByLoginId"
+            parameterType="string"
+            resultType="com.blog.domain.User">
+        SELECT member_id AS id,
+               login_id AS loginId,
+               password,
+               email,
+               nickname,
+               role,
+               status,
+               created_at AS createdAt,
+               updated_at AS updatedAt
+        FROM member
+        WHERE login_id = #{loginId}
+    </select>
+
+    <!-- 사용자 추가 -->
+    <insert id="insertUser"
+            parameterType="com.blog.domain.User"
+            useGeneratedKeys="true"
+            keyProperty="id">
+
+        INSERT INTO member
+        (login_id, password, email, nickname, role, status)
+        VALUES
+        (#{loginId}, #{password}, #{email}, #{nickname}, #{role}, #{status})
+
+    </insert>
+
+    <!-- 로그인 아이디 존재 확인 -->
+    <select id="existsByLoginId"
+            parameterType="string"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM member
+        WHERE login_id = #{loginId}
+    </select>
+
+    <!-- 이메일 존재 확인 -->
+    <select id="existsByEmail"
+            parameterType="string"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM member
+        WHERE email = #{email}
+    </select>
+
+</mapper>

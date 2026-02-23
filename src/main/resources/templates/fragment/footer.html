@@ -1,0 +1,33 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="footer">
+  <style>
+  .site-footer{background:#0b2a3a;color:#fff;padding:24px 18px;margin-top:36px}
+  .site-footer .inner{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+  .site-footer .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+  .site-footer a{color:rgba(255,255,255,0.9);text-decoration:none}
+  .site-footer .brand{display:flex;align-items:center;gap:12px}
+  .site-footer small{color:rgba(255,255,255,0.8)}
+  .site-footer .legal{font-size:0.9rem;color:rgba(255,255,255,0.7)}
+  </style>
+
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="top">
+        <div class="brand">
+          <!-- ロゴは常に表示 -->
+          <img th:src="@{/images/placeholder.svg}" alt="logo" style="height:36px"/>
+          <div>
+            <strong style="display:block;color:#fff">JPass</strong>
+            <small>ファンが集まってチームを応援する場所</small>
+          </div>
+        </div>
+        <nav style="display:flex;gap:10px;flex-wrap:wrap">
+          <a th:href="@{/about}">会社紹介</a>
+          <a th:href="@{/terms}">利用規約</a>
+          <a th:href="@{/privacy}">個人情報保護方針</a>
+          <a th:href="@{/contact}">お問い合わせ</a>
+        </nav>
+      </div>
+      <div class="legal">&copy; 2026 JPass. All rights reserved.</div>
+    </div>
+  </footer>
+</th:block>

@@ -1,0 +1,170 @@
+<th:block xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	th:fragment="header">
+
+	<style>
+.site-header {
+	background: #ffffff;
+	color: #0b2a4a;
+	padding: 12px 18px;
+	border-bottom: 1px solid rgba(13, 54, 96, 0.06)
+}
+
+.site-header .inner {
+	max-width: 1200px;
+	margin: 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 18px
+}
+
+.site-logo {
+	display: flex;
+	align-items: center;
+	text-decoration: none;
+	color: inherit
+}
+
+.site-logo img {
+	height: 36px;
+	margin-right: 10px
+}
+
+.site-title {
+	font-size: 1.15rem;
+	color: #073763
+}
+
+.site-nav {
+	display: flex;
+	gap: 14px;
+	margin-left: 8px;
+	align-items: center
+}
+
+.site-nav a {
+	color: #1366d6;
+	text-decoration: none;
+	padding: 8px 10px;
+	border-radius: 6px
+}
+
+.site-nav a:hover {
+	background: #f0f6ff
+}
+
+.dropdown-menu a {
+	color: #0b2a4a !important
+}
+
+.search-form {
+	display: flex;
+	align-items: center;
+	gap: 8px
+}
+
+.search-form input {
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid rgba(19, 102, 214, 0.12);
+	background: rgba(19, 102, 214, 0.03);
+	width: 220px
+}
+
+.search-form button {
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 0;
+	background: #0b6cff;
+	color: #fff
+}
+
+.auth-controls {
+	display: flex;
+	gap: 8px;
+	margin-left: 12px;
+	align-items: center
+}
+
+.auth-controls a {
+	padding: 8px 10px;
+	border-radius: 8px;
+	text-decoration: none
+}
+
+.auth-controls a.primary {
+	background: #0b6cff;
+	color: #fff
+}
+
+@media ( max-width :768px) {
+	.search-form input {
+		width: 140px
+	}
+}
+</style>
+
+	<header class="site-header">
+		<div class="inner">
+
+			<!-- ロゴは常に表示 -->
+			<a th:href="@{/}" class="site-logo"> <img
+				th:src="@{/images/placeholder.svg}" alt="logo" /> <strong
+				class="site-title">JPass</strong>
+			</a>
+
+			<nav class="site-nav">
+				<a th:href="@{/}">ホーム</a>
+
+				<div class="dropdown">
+					<a class="dropdown-toggle" href="#" role="button"
+						data-bs-toggle="dropdown">リーグ情報</a>
+					<ul class="dropdown-menu">
+						<li><a class="dropdown-item" th:href="@{/jleague/live}">🔴
+								リアルタイムスコア</a></li>
+						<li><a class="dropdown-item" th:href="@{/jleague/matchday}">📅
+								試合日程</a></li>
+						<li><a class="dropdown-item" th:href="@{/jleague/standings}">📊
+								リーグ順位</a></li>
+					</ul>
+				</div>
+
+				<a th:href="@{/jleague/teams}">🏟 チーム</a> <a th:href="@{/players}">👤
+					選手</a> <a th:href="@{/boards}">掲示板</a>
+			</nav>
+
+			<div style="flex: 1"></div>
+
+			<form th:action="@{/search}" method="get" class="search-form">
+				<input name="q" type="search" placeholder="チーム名, 選手 検索" />
+				<button type="submit">検索</button>
+			</form>
+
+			<div class="auth-controls">
+				<!-- ログイン前 -->
+				<div sec:authorize="isAnonymous()">
+					<a th:href="@{/login}">ログイン</a> <a th:href="@{/join}"
+						class="primary">会員登録</a>
+				</div>
+				<!-- ログイン後 -->
+				<div sec:authorize="isAuthenticated()">
+					<!-- 로그인 후 -->
+					<div sec:authorize="isAuthenticated()">
+						<!-- ADMIN 권한일 경우 -->
+						<a th:href="@{/admin/dashboard}" sec:authorize="hasRole('ADMIN')">
+							<span sec:authentication="name"></span>
+						</a>
+						<!-- 일반 사용자일 경우 -->
+						<a th:href="@{/member/profile}" sec:authorize="!hasRole('ADMIN')">
+							<span sec:authentication="name"></span>
+						</a>
+
+						<form th:action="@{/logout}" method="post">
+							<button type="submit">ログアウト</button>
+						</form>
+					</div>
+				</div>
+
+			</div>
+	</header>
+</th:block>

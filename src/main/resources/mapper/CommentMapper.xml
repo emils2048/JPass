@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.blog.mapper.CommentMapper">
+
+    <insert id="insertComment" parameterType="com.blog.domain.Comment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO comment (team_id, member_id, content)
+        VALUES (#{teamId}, #{memberId}, #{content})
+    </insert>
+
+    <select id="findByTeamId" parameterType="long" resultType="com.blog.domain.Comment">
+        SELECT c.id, c.team_id, c.member_id, c.content, c.created_at, m.nickname
+        FROM comment c
+        LEFT JOIN member m ON c.member_id = m.member_id
+        WHERE c.team_id = #{teamId}
+        ORDER BY c.created_at ASC
+    </select>
+
+    <select id="findById" parameterType="long" resultType="com.blog.domain.Comment">
+        SELECT c.id, c.team_id, c.member_id, c.content, c.created_at, m.nickname
+        FROM comment c
+        LEFT JOIN member m ON c.member_id = m.member_id
+        WHERE c.id = #{id}
+    </select>
+
+    <update id="updateComment">
+        UPDATE comment
+        SET content = #{content}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteComment">
+        DELETE FROM comment
+        WHERE id = #{id}
+    </delete>
+
+</mapper>
